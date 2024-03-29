@@ -3,7 +3,6 @@
 - 0.10
   - Release it!
 - 0.11
-  - Non-`|2.1` `reduce`
   - `un insert` pattern
   - Allow warnings to be disabled
   - List-filled `keep`
