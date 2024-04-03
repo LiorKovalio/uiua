@@ -206,6 +206,7 @@ impl fmt::Display for ImplPrimitive {
             BothTrace => write!(f, "{Both}{Trace}"),
             UnBothTrace => write!(f, "{Un}{Both}{Trace}"),
             MatchPattern => write!(f, "pattern match"),
+            TryPattern => write!(f, "{Try} pattern"),
             &ReduceDepth(n) => {
                 for _ in 0..n {
                     write!(f, "{Rows}")?;
@@ -659,7 +660,7 @@ impl Primitive {
                 env.call_with_this(f)?;
             }
             Primitive::Recur => env.recur()?,
-            Primitive::Try => algorithm::try_(env)?,
+            Primitive::Try => algorithm::try_(env, |_| true)?,
             Primitive::Assert => {
                 let msg = env.pop(1)?;
                 let cond = env.pop(2)?;
@@ -1000,6 +1001,7 @@ impl ImplPrimitive {
             }
             ImplPrimitive::Adjacent => reduce::adjacent(env)?,
             ImplPrimitive::MatchPattern => invert::match_pattern(env)?,
+            ImplPrimitive::TryPattern => algorithm::try_(env, UiuaError::is_pattern_match)?,
             &ImplPrimitive::ReduceDepth(depth) => reduce::reduce(depth, env)?,
             &ImplPrimitive::TransposeN(n) => env.monadic_mut(|val| val.transpose_depth(0, n))?,
         }

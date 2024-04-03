@@ -1319,6 +1319,15 @@ fn TutorialPatternMatching() -> impl IntoView {
         <Editor example="°$\"Hello, _!\" \"Hello, World!\""/>
         <p>"More precisely, format string patterns form a regex that replaces all "<code>"_"</code>"s from the format string with "<code>"(.+?|.*)"</code>", where "<code>"."</code>" also matches newlines."</p>
 
+        <Hd id="match-failure">"Match Failure vs Errors"</Hd>
+        <p>"Pattern match failuers throw normal runtime errors. Using "<Prim prim=Try/>" allows you to catch the error and try additional patterns."</p>
+        <p>"But wait! What if additional code in the matched pattern's branch throws an error? That branch would be partially executed, and then more branches would be tried. This is not what you want!"</p>
+        <p>"For this reason, "<Prim prim=Try/>"d functions that directly wrap pattern matching will "<em>"only"</em>" catch pattern match failures. Other kinds of errors will not be caught."</p>
+        <p>"Consider this example:"</p>
+        <Editor example="F ← ⍣(\n  ⊢ &p\"Starts with 1\" °(⊂1)\n| ⊢ &p\"Starts with 2\" °(⊂2)\n| ⊢ &p\"Starts with 3\" °(⊂3)\n| &p\"Starts with something else\"∘\n)\nF [1]"/> // Should fail
+        <p>"The "<Prims prims=[Un, Join]/><code>"1"</code>" in the first pattern removes the "<code>"1"</code>" from the front of the array. However, there are no more elements left, so the call to "<Prim prim=First/>" fails. If the "<Prim prim=Try/>" had caught this error, the next pattern would have been tried, and two messages indicating a match would have been printed."</p>
+        <p>"While this behavior may seem odd, it is useful to be able to separate these two use cases of "<Prim prim=Try/>"."</p>
+
         <Hd id="challenges">"Challenges"</Hd>
 
         <Challenge

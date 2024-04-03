@@ -555,6 +555,11 @@ impl<'a> VirtualEnv<'a> {
                 };
                 self.handle_args_outputs(1, outputs)?;
             }
+            Instr::ImplPrim(ImplPrimitive::TryPattern, _) => {
+                let f_sig = self.pop_func()?.signature();
+                let _handler_sig = self.pop_func()?.signature();
+                self.handle_sig(f_sig)?;
+            }
             Instr::ImplPrim(prim, _) => {
                 let args = prim.args();
                 for _ in 0..prim.modifier_args().unwrap_or(0) {

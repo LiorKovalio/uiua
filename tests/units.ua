@@ -408,6 +408,13 @@ $$ _ line
 ⍤⟜≍: {"5"} {°$"_"} "5"
 ⍤⟜≍: {} {°$"wow"} "wow"
 ⍤⟜≍: {"1" "2\n5"} {°$"_-_" "1-2\n5"}
+F ← ⍣⍣(
+  ⊙◌°⊂ &p"Starts with 1" °(⊂1)
+| &p"Starts with 2" °(⊂2)
+| &p"Starts with 3" °(⊂3)
+| &p"Starts with something else"∘
+){⊙⋅10}
+⍤⟜≍: {[1] 10} F [1]
 
 # Wildcard
 ⍤⟜≍: [W 2 3] [1 2 3]

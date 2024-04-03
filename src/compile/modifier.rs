@@ -722,6 +722,38 @@ impl Compiler {
                     self.push_instr(Instr::PushFunc(func));
                 }
             }
+            Try => {
+                let mut operands = modified.code_operands().rev().cloned();
+                if !call {
+                    self.new_functions.push(EcoVec::new());
+                }
+                self.word(operands.next().unwrap(), false)?;
+                let (tried_instrs, tried_sig) =
+                    self.compile_operand_word(operands.next().unwrap())?;
+                let span = self.add_span(modified.modifier.span.clone());
+                let try_instr = if instrs_have_pattern_matching(&tried_instrs, &self.asm) {
+                    Instr::ImplPrim(ImplPrimitive::TryPattern, span)
+                } else {
+                    Instr::Prim(Primitive::Try, span)
+                };
+                let tried_func = self.make_function(
+                    FunctionId::Anonymous(modified.code_operands().next().unwrap().span.clone()),
+                    tried_sig,
+                    tried_instrs,
+                );
+                self.push_instr(Instr::PushFunc(tried_func));
+                self.push_instr(try_instr);
+                if !call {
+                    let instrs = self.new_functions.pop().unwrap();
+                    let sig = self.sig_of(&instrs, &modified.modifier.span)?;
+                    let func = self.make_function(
+                        FunctionId::Anonymous(modified.modifier.span.clone()),
+                        sig,
+                        instrs,
+                    );
+                    self.push_instr(Instr::PushFunc(func));
+                }
+            }
             Bind => {
                 let operand = modified.code_operands().next().unwrap().clone();
                 let operand_span = operand.span.clone();
@@ -1127,4 +1159,25 @@ impl Compiler {
         self.scope = scope;
         res
     }
+}
+
+fn instrs_have_pattern_matching(instrs: &[Instr], asm: &Assembly) -> bool {
+    use ImplPrimitive::*;
+    use Primitive::*;
+    // Collect positions of `try` instructions
+    let try_pos: BTreeSet<usize> = instrs
+        .iter()
+        .enumerate()
+        .filter(|(_, instr)| matches!(instr, Instr::Prim(Try, _) | Instr::ImplPrim(TryPattern, _)))
+        .map(|(i, _)| i)
+        .collect();
+    instrs.iter().enumerate().any(|(i, instr)| match instr {
+        // Explicit pattern matching
+        Instr::ImplPrim(MatchPattern | UnJoinPattern, _) | Instr::MatchFormatPattern { .. } => true,
+        // Non-`try` functions
+        Instr::PushFunc(f) if !try_pos.contains(&(i + 1)) => {
+            instrs_have_pattern_matching(f.instrs(asm), asm)
+        }
+        _ => false,
+    })
 }

@@ -32,3 +32,11 @@ regex "([a-z]" "hello world"
 [⋅◌ ⍥0] 1 "oops"
 
 [⋅◌ ⍥0] 2 "ok"
+
+F ← ⍣(
+  ⊙◌°⊂ &p"Starts with 1" °(⊂1)
+| &p"Starts with 2" °(⊂2)
+| &p"Starts with 3" °(⊂3)
+| &p"Starts with something else"∘
+)
+F [1]

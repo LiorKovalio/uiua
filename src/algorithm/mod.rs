@@ -610,7 +610,7 @@ pub fn switch(
     Ok(())
 }
 
-pub fn try_(env: &mut Uiua) -> UiuaResult {
+pub fn try_(env: &mut Uiua, handle_error: impl Fn(&UiuaError) -> bool) -> UiuaResult {
     let f = env.pop_function()?;
     let handler = env.pop_function()?;
     let f_sig = f.signature();
@@ -634,6 +634,9 @@ pub fn try_(env: &mut Uiua) -> UiuaResult {
     }
     let backup = env.clone_stack_top(f_sig.args.min(handler_sig.args))?;
     if let Err(e) = env.call_clean_stack(f) {
+        if !handle_error(&e) {
+            return Err(e);
+        }
         if handler_sig.args > f_sig.args {
             (env.rt.backend).save_error_color(e.message(), e.report().to_string());
             env.push(e.value());
